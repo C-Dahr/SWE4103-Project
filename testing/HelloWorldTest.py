@@ -18,10 +18,13 @@ urlRoot = mainUrl + '/'
 urlUserCreate = 'http://127.0.0.1:5000/api/register'
 
 expectedStatus = 200
-# expectedText = {"hello": "world"}
+expectedText = {"hello": "world"}
 
 print(requests.get(url).status_code)
 assert requests.get(url).status_code == expectedStatus
+r = requests.get(url).json()
+print(r)
+assert r == expectedText
 
 print(requests.post(urlUserCreate).status_code)
 assert requests.post(urlUserCreate).status_code == expectedStatus

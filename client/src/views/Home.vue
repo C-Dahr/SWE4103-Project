@@ -1,17 +1,41 @@
 <template>
-  <div class="home">
-    <!-- TODO router view stuff can go in here
-    Probalby should rename this file -->
+  <div id="home">
+    <div id="home-left">
+      HOME
+    </div>
+    <div id="home-right">
+      <TwitterFeed/>
+    </div>
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
+import TwitterFeed from '@/components/TwitterFeed.vue';
 
 export default {
-  name: 'home',
+  name: 'Home',
   components: {
-
+    TwitterFeed,
   },
 };
 </script>
+
+<style lang="scss" scoped>
+#home{
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+  #home-left{
+    width: calc(75% - 16px);
+
+  }
+
+  #home-right{
+    width: 25%;
+    margin: 0px 8px;
+    display: flex;
+    justify-content: flex-start;
+  }
+}
+</style>

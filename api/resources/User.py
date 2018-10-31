@@ -1,4 +1,4 @@
-from flask_restful import Resource, abort, reqparse
+from flask_restful import Resource, abort, reqparse, request
 from passlib.hash import pbkdf2_sha512
 from datetime import datetime, timedelta
 import time
@@ -34,12 +34,10 @@ class Register(Resource):
         db_response = db_connector.cursor.fetchone()
         user_data = {
             'user_id': db_response[0],
-            'privileges_id': db_response[1],
             'user_type': db_response[2],
             'first_name': db_response[3],
             'last_name': db_response[4],
             'email': db_response[5],
-            'hash': db_response[6],
             'last_login': db_response[7]
         }
         db_connector.conn.close()
@@ -64,15 +62,13 @@ class Login(Resource):
         db_response = db_connector.cursor.fetchone()
         user_data = {
             'user_id': db_response[0],
-            'privileges_id': db_response[1],
             'user_type': db_response[2],
             'first_name': db_response[3],
             'last_name': db_response[4],
             'email': db_response[5],
-            'hash': db_response[6],
-            'last_login': db_response[7].strftime('%Y-%m-%d %H:%M:%S')
+            'last_login': db_response[7].strftime('%Y-%m-%d %H:%M:%S') if db_response[7] else None
         }
-        if not pbkdf2_sha512.verify(password, user_data['hash']):
+        if not pbkdf2_sha512.verify(password, db_response[6]):
             abort(403, error='the password entered is incorrect')
 
         # update last login in database
@@ -82,12 +78,42 @@ class Login(Resource):
         db_connector.conn.close()
 
         # creating validation token
-        token_payload = {
-            'sub': email,
-            'iat': datetime.utcnow(),
-            'exp': datetime.utcnow() + timedelta(minutes=30)
-        }
         token_handler = TokenHandler()
-        token = token_handler.create_token(token_payload)
+        token = token_handler.create_token(email)
 
         return {'token': token.decode('UTF-8'), 'user': user_data}, 201
+
+
+class TokenValidation(Resource):
+    # If token is valid, return refreshed token and user information. Else, return 403 error.
+    def get(self):
+        token = request.headers.get('Authorization')
+        if not token:
+            abort(403, error="Unauthorized Access (no token)")
+        tk_handler = TokenHandler()
+        new_token = tk_handler.refresh_token(token)
+        return {'token': new_token.decode('UTF-8')}, 200
+
+
+class User(Resource):
+    def get(self):
+        token = request.headers.get('Authorization')
+        if not token:
+            abort(403, error="Unauthorized Access (no token)")
+        tk_handler = TokenHandler()
+        user_email = tk_handler.decode_token(token)
+        db_connector = DatabaseConnector()
+        # getting user_id to return to the frontend
+        db_connector.cursor.execute('CALL get_user("{}");'.format(user_email))
+        db_response = db_connector.cursor.fetchone()
+        user_data = {
+            'user_id': db_response[0],
+            'user_type': db_response[2],
+            'first_name': db_response[3],
+            'last_name': db_response[4],
+            'email': db_response[5],
+            'last_login': db_response[7].strftime('%Y-%m-%d %H:%M:%S') if db_response[7] else None
+        }
+        db_connector.conn.close()
+
+        return {'user': user_data}, 200

@@ -12,15 +12,16 @@ const getters = {
   token(state) {
     return state.token;
   },
+  loggedIn(state) {
+    return state.token && state.user;
+  },
 };
 
 const actions = {
   userRegister({ dispatch }, payload) {
     return UserService.register(payload).then((response) => {
-      console.log('RESPONSE: ', response);
       switch (response.status) {
         case 201: {
-          // TODO handle this better
           const loginPayload = {
             email: payload.email,
             password: payload.password,
@@ -40,20 +41,13 @@ const actions = {
   },
   userLogIn({ commit }, payload) {
     return UserService.login(payload).then((response) => {
-      console.log('RESPONSE: ', response);
+      if (!response || !response.status) {
+        return { retVal: false, retMsg: 'Server Error' };
+      }
       switch (response.status) {
         case 201: {
-          const mToken = response.data.token;
-          localStorage.setItem('token', mToken);
-          // TODO remeber to actually change this to the response.data.user field
-          // commit('mutateUser', response.data.user);
-          const tempUser = {
-            firstName: payload.email.split('@')[0],
-            lastName: payload.email.split('@')[1],
-            email: payload.email,
-          };
-          commit('mutateUser', tempUser);
-          commit('mutateToken', mToken);
+          commit('mutateUser', response.data.user);
+          commit('mutateToken', response.data.token);
           return { retVal: true, retMsg: 'Success' };
         }
         case 404: {
@@ -71,7 +65,29 @@ const actions = {
   userLogOut({ commit }) {
     commit('mutateUser', null);
     commit('mutateToken', null);
-    localStorage.removeItem('token');
+  },
+  setUser({ commit }, user) {
+    commit('mutateUser', user);
+  },
+  retrieveUserFromToken({ commit, dispatch }) {
+    UserService.getUserFromToken().then((response) => {
+      if (response.status && response.status === 200) {
+        dispatch('refreshToken');
+        commit('mutateUser', response.data.user);
+      } else {
+        commit('mutateUser', null);
+        commit('mutateToken', null);
+      }
+    });
+  },
+  refreshToken({ commit }) {
+    UserService.refreshToken().then((response) => {
+      if (response.status && response.status === 200) {
+        commit('mutateToken', response.data.token);
+      } else {
+        commit('mutateToken', null);
+      }
+    });
   },
 };
 
@@ -80,6 +96,7 @@ const mutations = {
     state.user = payload;
   },
   mutateToken(state, token) {
+    token ? localStorage.setItem('token', token) : localStorage.removeItem('token');
     state.token = token;
   },
 };

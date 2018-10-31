@@ -1,35 +1,5 @@
 <template>
   <div id="main-header">
-    <div id="main-header-minor">
-      <div
-        id="invalid-user"
-        v-if="!user">
-        <div
-          id="log-in"
-          @click='setLoginModalVisible(true)'>
-          Log In
-        </div>
-        <div
-          id="create-account"
-          @click='setCreateAccountModalVisible(true)'>
-          Create Account
-        </div>
-      </div>
-      <div
-        id="valid-user"
-        v-else>
-        <div
-          id=user-name>
-          {{ user.firstName }} {{ user.lastName }}
-        </div>
-        <div
-          id="log-out"
-          @click='logoutClicked'>
-          Log Out
-          <font-awesome-icon icon="sign-out-alt"></font-awesome-icon>
-        </div>
-      </div>
-    </div>
     <div id="main-header-major">
       <div id="main-header-major-left">
         <img id="soccer-ball-img" src="@/assets/Soccerball.svg" alt="SoccerBall">
@@ -58,6 +28,7 @@ export default{
   computed: {
     ...mapGetters([
       'user',
+      'loggedIn',
     ]),
   },
   methods: {
@@ -85,87 +56,29 @@ export default{
 @import '@/style/global.scss';
 
 #main-header{
-  height: 212px;
   width: 100%;
   display: flex;
   flex-direction: column;
 
-  #main-header-minor{
-    height: 32px;
-    background-color: $SECONDARY_COLOR;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    margin-right: 8px;
-
-    #invalid-user{
-      display: flex;
-      flex-direction: row;
-
-      #log-in{
-        margin: 0px 4px;
-        font-weight: bold;
-
-        &:hover{
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
-
-      #create-account{
-        margin: 0px 4px;
-
-        &:hover{
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
-    }
-
-    #valid-user{
-      display: flex;
-      flex-direction: row;
-
-      #user-name{
-        margin: 0px 4px;
-        font-weight: bold;
-
-        &:hover{
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
-
-      #log-out{
-        margin: 0px 4px;
-
-        &:hover{
-          cursor: pointer;
-          text-decoration: underline;
-        }
-      }
-
-    }
-  }
-
   #main-header-major{
-    height: 180px;
     background: linear-gradient($PRIMARY_COLOR, $PRIMARY_TO_FADE);
     padding: 8px 8px;
     width: calc(100% - 16px);
     display: flex;
     justify-content: space-between;
+    align-items: center;
 
     #main-header-major-left{
       display: flex;
       flex-direction: row;
+      user-select: none;
 
       &:hover{
         cursor: pointer;
       }
 
       #soccer-ball-img{
-        height: 132px;
+        height: 108px;
         align-self: flex-end;
 
         @include smallScreenSize{
@@ -178,7 +91,7 @@ export default{
         text-align: start;
         align-self: flex-end;
         font-weight: bold;
-        font-size: 48px;
+        font-size: 2.5rem;
         margin: 0px 4px;
         text-shadow:
           -1px -1px 0 #000,

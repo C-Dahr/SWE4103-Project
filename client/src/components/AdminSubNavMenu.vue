@@ -86,6 +86,7 @@ export default {
   background-color: $VERY_LIGHT_GREY;
   transition: 0.3s;
   font-size: 0.9rem;
+  min-height: 36px;
 
   #admin-sub-menu{
     padding: 0px 20px;
@@ -108,7 +109,7 @@ export default {
       }
 
       span{
-        padding: 10px 20px;
+        padding: 0px 20px;
         user-select: none;
       }
 
